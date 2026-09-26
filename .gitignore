@@ -6,13 +6,14 @@ corpus/
 census/
 .gauntlet/
 
-# dependencies are fetched, not vendored (Uniswap's PoolManager is BUSL-1.1): scripts/install-v4.sh
+# dependencies are fetched, not vendored (Uniswap's PoolManager is BUSL-1.1):
+# skills/hook-gauntlet-battery/scripts/install-v4.sh
 lib/
-# ... except the kit's own shell library, which is source, not a dependency (scripts/lib/parse.sh)
-!scripts/lib/
+# ... except the kit's own shell libraries, which are source, not dependencies (skills/*/scripts/lib/)
+!**/scripts/lib/
 
 # secrets and fetched fixtures
 .env
 .env.*
-foundry-kit/v4/fixtures/*.hex
-foundry-kit/v4/fixtures/*.json
+skills/hook-gauntlet-battery/foundry-kit/v4/fixtures/*.hex
+skills/hook-gauntlet-battery/foundry-kit/v4/fixtures/*.json

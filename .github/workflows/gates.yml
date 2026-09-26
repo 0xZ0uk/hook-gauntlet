@@ -6,22 +6,22 @@
 #   - on every push / pull request, and once a day:
 #       battery   the root kit and the v4 module against the SOURCE manager (build, tests, sizes, stale-build check -
 #                 one exit code each), and a check that the v4 log names the sandbox suites (test/sim) that ran; before
-#                 them, scripts/doctor.sh, which must say "doctor: ready" once the dependencies are in (it installs nothing);
-#       selftest  scripts/selftest.sh, which makes every guard in scripts/ that can be exercised offline go red on
+#                 them, skills/hook-gauntlet-doctor/scripts/doctor.sh, which must say "doctor: ready" once the dependencies are in (it installs nothing);
+#       selftest  skills/hook-gauntlet-doctor/scripts/selftest.sh, which makes every guard in scripts/ that can be exercised offline go red on
 #                 purpose (it runs mutation cases; 72 s on a warm local bench, 2026-09-23, longer on a cold runner),
 #                 with reportlab and pypdf installed here (pinned) so that its dossier-pdf.py cases run - locally the
 #                 kit installs neither and the selftest says it skipped them - and a check that they did run;
-#       shellcheck  over scripts/*.sh and scripts/lib/*.sh, at severity "warning" (style and info notes are not gated);
+#       shellcheck  over skills/*/scripts/*.sh and skills/*/scripts/lib/*.sh, at severity "warning" (style and info notes are not gated);
 #       battery-forge-1.8.3  the same battery on a SECOND pinned forge, the second row of the supported-versions table
-#                 in foundry-kit/README.md. First seen green in run 35867090813 (2026-09-23), so that row says "supported";
+#                 in skills/hook-gauntlet-battery/foundry-kit/README.md. First seen green in run 35867090813 (2026-09-23), so that row says "supported";
 #                 if it goes red, the job is removed and the row goes back to "unsupported" - never a job left red, never
 #                 one marked allowed-to-fail. A third version is added the same way: a job first, then a row;
 #       fork      the v4 module on a mainnet fork, ONLY if the repository has a secret named RPC_URL; without it the
 #                 job skips every step and says so in a notice (K16, see the job);
 #   - NOT here: the battery against the REAL pool manager's bytecode etched from a fixture. It needs an RPC endpoint to
-#     fetch, and no endpoint or key goes into this repository. That leg is run locally (foundry-kit/v4/README.md) and
+#     fetch, and no endpoint or key goes into this repository. That leg is run locally (skills/hook-gauntlet-battery/foundry-kit/v4/README.md) and
 #     reported in the dossier.
-# Foundry is PINNED: a nightly renames flags, and every flag in doctrine/JUDGES.md was checked against FOUNDRY_VERSION.
+# Foundry is PINNED: a nightly renames flags, and every flag in skills/hook-gauntlet-battery/references/JUDGES.md was checked against FOUNDRY_VERSION.
 # No `--offline` here: the runner has no compiler cached and `--offline` forbids forge from fetching solc 0.8.26 - the
 # first run of this workflow was red for exactly that, after a local replay had passed on a machine with solc cached.
 # Nothing but the fork job talks to an RPC, and that one only through the secret.
@@ -55,18 +55,18 @@ jobs:
         with:
           version: ${{ env.FOUNDRY_VERSION }}
       - name: forge-std for the root kit, pinned
-        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std foundry-kit/lib/forge-std
+        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       - name: Uniswap v4 sources for the v4 module, at the pinned commits (never vendored - BUSL-1.1)
-        run: scripts/install-v4.sh foundry-kit/v4
+        run: skills/hook-gauntlet-battery/scripts/install-v4.sh skills/hook-gauntlet-battery/foundry-kit/v4
       - name: doctor (checks only, installs nothing; its last line must be "doctor: ready")
-        run: scripts/doctor.sh
+        run: skills/hook-gauntlet-doctor/scripts/doctor.sh
       - name: battery, root kit
-        run: scripts/battery.sh foundry-kit
+        run: skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit
       - name: battery, v4 module, source manager
-        run: V4_MANAGER=source scripts/battery.sh foundry-kit/v4
+        run: V4_MANAGER=source skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit/v4
       - name: the sandbox suites ran (test/sim, by name)
         run: |
-          grep -E '^Ran [0-9]+ tests? for test/sim/' foundry-kit/v4/.gauntlet/reports/02-test.txt \
+          grep -E '^Ran [0-9]+ tests? for test/sim/' skills/hook-gauntlet-battery/foundry-kit/v4/.gauntlet/reports/02-test.txt \
             || { echo "no test/sim suite in the v4 battery's log: the sandbox did not run"; exit 1; }
       - name: keep the logs
         if: always()
@@ -74,8 +74,8 @@ jobs:
         with:
           name: battery-logs
           path: |
-            foundry-kit/.gauntlet/reports/
-            foundry-kit/v4/.gauntlet/reports/
+            skills/hook-gauntlet-battery/foundry-kit/.gauntlet/reports/
+            skills/hook-gauntlet-battery/foundry-kit/v4/.gauntlet/reports/
           if-no-files-found: ignore
 
   battery-forge-1-8-3:
@@ -90,23 +90,23 @@ jobs:
       - name: forge version
         run: forge --version
       - name: forge-std for the root kit, pinned
-        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std foundry-kit/lib/forge-std
+        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       - name: Uniswap v4 sources for the v4 module, at the pinned commits
-        run: scripts/install-v4.sh foundry-kit/v4
+        run: skills/hook-gauntlet-battery/scripts/install-v4.sh skills/hook-gauntlet-battery/foundry-kit/v4
       - name: doctor (checks only; forge 1.8.3 is the second supported version, so this is "doctor: ready" too)
-        run: scripts/doctor.sh
+        run: skills/hook-gauntlet-doctor/scripts/doctor.sh
       - name: battery, root kit
-        run: scripts/battery.sh foundry-kit
+        run: skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit
       - name: battery, v4 module, source manager
-        run: V4_MANAGER=source scripts/battery.sh foundry-kit/v4
+        run: V4_MANAGER=source skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit/v4
       - name: keep the logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: battery-logs-forge-1.8.3
           path: |
-            foundry-kit/.gauntlet/reports/
-            foundry-kit/v4/.gauntlet/reports/
+            skills/hook-gauntlet-battery/foundry-kit/.gauntlet/reports/
+            skills/hook-gauntlet-battery/foundry-kit/v4/.gauntlet/reports/
           if-no-files-found: ignore
 
   # The v4 module on a mainnet fork (K16): the fork suites and the three example hooks' unit suites, on the deployed
@@ -137,13 +137,13 @@ jobs:
           version: ${{ env.FOUNDRY_VERSION }}
       - name: forge-std for the root kit, pinned
         if: steps.rpc.outputs.have == 'yes'
-        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std foundry-kit/lib/forge-std
+        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       - name: Uniswap v4 sources for the v4 module, at the pinned commits
         if: steps.rpc.outputs.have == 'yes'
-        run: scripts/install-v4.sh foundry-kit/v4
+        run: skills/hook-gauntlet-battery/scripts/install-v4.sh skills/hook-gauntlet-battery/foundry-kit/v4
       - name: battery, v4 module, mainnet fork at the pinned block
         if: steps.rpc.outputs.have == 'yes'
-        run: FOUNDRY_PROFILE=fork V4_MANAGER=fork scripts/battery.sh foundry-kit/v4
+        run: FOUNDRY_PROFILE=fork V4_MANAGER=fork skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit/v4
 
   selftest:
     name: selftest (every guard that can be exercised offline, seen red)
@@ -155,7 +155,7 @@ jobs:
         with:
           version: ${{ env.FOUNDRY_VERSION }}
       - name: forge-std for the root kit, pinned
-        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std foundry-kit/lib/forge-std
+        run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       # the dossier's PDF copy: reportlab renders it, pypdf reads it back in the selftest (no line lost on the way to
       # paper). A Python of its own, so that pip does not touch the runner's system Python; versions pinned
       - uses: actions/setup-python@v5
@@ -164,7 +164,7 @@ jobs:
       - name: reportlab and pypdf for the dossier cases, pinned
         run: python3 -m pip install --quiet "reportlab==${{ env.REPORTLAB_VERSION }}" "pypdf==${{ env.PYPDF_VERSION }}"
       - name: the dossier template renders as a PDF
-        run: python3 scripts/dossier-pdf.py briefs/handoff-dossier.md "$RUNNER_TEMP/handoff-dossier.pdf"
+        run: python3 skills/hook-gauntlet-dossier/scripts/dossier-pdf.py skills/hook-gauntlet-dossier/references/handoff-dossier.md "$RUNNER_TEMP/handoff-dossier.pdf"
       # the log is kept, and uploaded when the job fails: a red on the daily schedule is read days later, and the job's
       # own console is the only other copy of what went wrong
       - name: selftest
@@ -172,7 +172,7 @@ jobs:
         run: |
           set -o pipefail   # without it the step's exit code would be tee's, and a red selftest would pass
           mkdir -p selftest-logs
-          scripts/selftest.sh 2>&1 | tee selftest-logs/selftest.txt
+          skills/hook-gauntlet-doctor/scripts/selftest.sh 2>&1 | tee selftest-logs/selftest.txt
       - name: the dossier cases ran here (a skip for a missing reportlab or pypdf is not a pass)
         run: |
           grep -q '^  ok    no line of the fixture is lost on the way to paper' selftest-logs/selftest.txt \
@@ -194,4 +194,4 @@ jobs:
       - name: shellcheck is on the runner image
         run: shellcheck --version
       - name: shellcheck, severity warning, following the sourced parse.sh
-        run: shellcheck --external-sources --source-path=SCRIPTDIR --severity=warning scripts/*.sh scripts/lib/*.sh
+        run: shellcheck --external-sources --source-path=SCRIPTDIR --severity=warning skills/*/scripts/*.sh skills/*/scripts/lib/*.sh
