@@ -10,7 +10,7 @@ body:
     id: step
     attributes:
       label: Document and step
-      description: Which file and which step (e.g. QUICKSTART.md step 7b, doctrine/NEXT.md row 11).
+      description: Which file and which step (e.g. QUICKSTART.md step 7b, skills/hook-gauntlet/references/NEXT.md row 11).
     validations:
       required: true
   - type: dropdown

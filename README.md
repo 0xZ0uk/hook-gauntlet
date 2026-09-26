@@ -30,9 +30,9 @@ Start at [`AGENTS.md`](AGENTS.md). Humans can keep reading here.
 
 ```sh
 git clone <this repository> && cd hook-gauntlet
-scripts/selftest.sh              # every guard in scripts/ is made to go RED on purpose, then green. Needs forge and
-                                 # foundry-kit/lib (see foundry-kit/README.md); without them it says INCOMPLETE, not PASSED
-scripts/battery.sh foundry-kit   # build + tests + sizes + stale-build check on the worked example: one exit code
+skills/hook-gauntlet-doctor/scripts/selftest.sh              # every guard in scripts/ is made to go RED on purpose, then green. Needs forge and
+                                 # skills/hook-gauntlet-battery/foundry-kit/lib (see skills/hook-gauntlet-battery/foundry-kit/README.md); without them it says INCOMPLETE, not PASSED
+skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit   # build + tests + sizes + stale-build check on the worked example: one exit code
 ```
 
 Done looks like this, on forge 1.8.1 (CI also runs 1.8.3):
@@ -47,13 +47,13 @@ What the v4 module covers with a worked example, and what your project must add:
 
 | covered by an example here | project-specific, yours to add |
 |---|---|
-| hooks with no delta; hooks that return deltas; native ETH pools; ERC-6909 claims; a second pool sharing a currency; settlement re-entrancy through a token; dynamic fees; per-pool reserves; price and tick edges; hostile tokens and hostile native counterparties | fork tests on the target chain; the real manager's bytecode for that chain; unusual periphery; rebasing tokens and the other token behaviours `foundry-kit/README.md` lists as not covered; who receives a payout (a JIT-recipient actor); your hook's own threat model, actions and invariants |
+| hooks with no delta; hooks that return deltas; native ETH pools; ERC-6909 claims; a second pool sharing a currency; settlement re-entrancy through a token; dynamic fees; per-pool reserves; price and tick edges; hostile tokens and hostile native counterparties | fork tests on the target chain; the real manager's bytecode for that chain; unusual periphery; rebasing tokens and the other token behaviours `skills/hook-gauntlet-battery/foundry-kit/README.md` lists as not covered; who receives a payout (a JIT-recipient actor); your hook's own threat model, actions and invariants |
 
-The ten-step version, with every command and what "done" looks like at each step, is [`QUICKSTART.md`](QUICKSTART.md).
+The ten-step version, with every command and what "done" looks like at each step, is [`skills/hook-gauntlet/references/QUICKSTART.md`](skills/hook-gauntlet/references/QUICKSTART.md).
 
 Then, in your own project, to your agent: *"Read `AGENTS.md` in hook-gauntlet, all of it. My idea is: ... Start at
 phase 0 and interview me."* From there the agent's next step comes from one decision table,
-[`doctrine/NEXT.md`](doctrine/NEXT.md), and everything it decides is written in three files in YOUR repository
+[`skills/hook-gauntlet/references/NEXT.md`](skills/hook-gauntlet/references/NEXT.md), and everything it decides is written in three files in YOUR repository
 (`STATE.md`, `DECISIONS.md`, `LOG.md`), so a different agent - or you - can pick it up cold.
 
 ## The route, in one picture
@@ -111,14 +111,14 @@ flowchart TD
 ```
 
 Green runs locally: deterministic tools on your own CPU, no model involved. Orange is a round run by a model, and
-spends tokens - so the table in [`doctrine/NEXT.md`](doctrine/NEXT.md) never
+spends tokens - so the table in [`skills/hook-gauntlet/references/NEXT.md`](skills/hook-gauntlet/references/NEXT.md) never
 reaches an orange box while a green one still has something to say. Blue is the owner's decision, never the agent's.
 The grey box is the rule that keeps this from being a checklist: **the questions are fixed, the tools are not**
-([`AGENTS.md`](AGENTS.md) section 6b, [`doctrine/JUDGES.md`](doctrine/JUDGES.md)).
+([`AGENTS.md`](AGENTS.md) section 6b, [`skills/hook-gauntlet-battery/references/JUDGES.md`](skills/hook-gauntlet-battery/references/JUDGES.md)).
 
 ## What comes out at the end
 
-The handoff dossier ([`briefs/handoff-dossier.md`](briefs/handoff-dossier.md)), assembled from files the route already
+The handoff dossier ([`skills/hook-gauntlet-dossier/references/handoff-dossier.md`](skills/hook-gauntlet-dossier/references/handoff-dossier.md)), assembled from files the route already
 produced. Its sections, because they say more about this kit than any description of it:
 
 1. **Scope sheet** - the exact commit, files in and out of scope, compiler and its known bugs, sizes, bytecode hashes,
@@ -136,20 +136,24 @@ produced. Its sections, because they say more about this kit than any descriptio
 ## The repository, at a glance
 
 ```
-AGENTS.md        the agent's entry point: the rules, the phases and their gates, when it may diverge
-doctrine/        UPSTREAM (Uniswap's own docs and security framework come first) - NEXT (what do I do now?) -
-                 JUDGES (eleven judges: ten deterministic tools and the simulation sandbox, the question each answers, how each one lies) - EVIDENCE - VERIFY - LOOP -
-                 TRIAGE - SEVERITY - HOOK-ATTACKS - V4-ACCOUNTING -
-                 INVARIANTS - FUZZ-ACTIONS - CHANGES - COST - RETROFIT - LESSONS - SIMULATE
-briefs/          one template per role: owner interview, spec, audit round, black-box, verifier, executor with
-                 gates, promotion, handoff dossier
-state/           the three-file convention an agent installs in YOUR project
-foundry-kit/     hostile ERC-20, handler base with a campaign census, reusable assertions, a worked vault
-foundry-kit/v4/  harness for two pool managers (source, or your chain's real bytecode), address mining, a hostile
-                 hook, a worked dynamic-fee hook
-scripts/         battery - fuzz-long - census - mutate - size - bench - release-guard - assert-fresh-build -
-                 install-v4 - fetch-bytecode - selftest
-adapters/        claude-code/ (the supported adapter, the path this was run on); experimental/codex/ (untested)
+AGENTS.md        the agent's entry point: it routes to the resident skill; the canonical text is inside it
+skills/          the whole kit, as Agent Skills - each skill is self-contained: `references/` (doctrine, briefs,
+                 state templates, docs) and `scripts/` (the tools its phase runs); `../<sibling>/` for what it
+                 shares. `skills/hook-gauntlet-doctor/scripts/install-skills.sh` copies the tree into Claude
+                 Code, Codex or Devin; `skills/hook-gauntlet-doctor/scripts/skills-check.sh` is the drift guard
+  hook-gauntlet/   the resident skill: the constitution (rules, phases, NEXT.md row -> skill map), AGENTS.md,
+                 UPSTREAM, NEXT, EVIDENCE, VERIFY, TRIAGE, RETROFIT, QUICKSTART, the state templates, adapters/
+  -interview     the owner interview brief + COST
+  -spec          spec template + HOOK-ATTACKS, V4-ACCOUNTING, INVARIANTS, FUZZ-ACTIONS
+  -battery       JUDGES, CHANGES, SIMULATE + the judges (battery, fuzz-long, census, bench, mutate, size,
+                 assert-fresh-build, fetch-bytecode, install-v4, sim-report) + foundry-kit/ (hostile ERC-20,
+                 handler base with campaign census, reusable assertions, a worked vault; v4/ harness for two
+                 pool managers, address mining, a hostile hook, a worked dynamic-fee hook)
+  -round         LOOP, ORCHESTRATION, SEVERITY, LESSONS + the round briefs (audit, verifier, executor) + round.sh
+  -blackbox      the black-box brief
+  -release       the promotion brief + release-guard.sh
+  -dossier       the handoff-dossier template + dossier-pdf.py
+  -doctor        doctor.sh, selftest.sh, skills-check.sh, install-skills.sh + test fixtures
 ```
 
 ## What is in it
@@ -164,7 +168,7 @@ adapters/        claude-code/ (the supported adapter, the path this was run on);
 - **A state convention** - three files in your project (`STATE.md`, `DECISIONS.md`, `LOG.md`) so an
   agent with no context can read them and continue.
 - **A Foundry kit** - a hostile token mock with per-wallet switches, an invariant skeleton with a call-and-success
-  census, and a worked toy example. The v4 module (`foundry-kit/v4/`) runs one suite against two pool managers - compiled from source, or the real
+  census, and a worked toy example. The v4 module (`skills/hook-gauntlet-battery/foundry-kit/v4/`) runs one suite against two pool managers - compiled from source, or the real
   bytecode of the one deployed on your chain - mines the hook address for its permission bits, and ships a small
   worked hook.
 - **Scripts** - full battery, long fuzz, the campaign census (what the fuzzer actually reached, added up over every
@@ -174,16 +178,16 @@ adapters/        claude-code/ (the supported adapter, the path this was run on);
 
 ## What you need
 
-`scripts/doctor.sh` checks everything below and prints the install command for each missing item; it installs nothing.
+`skills/hook-gauntlet-doctor/scripts/doctor.sh` checks everything below and prints the install command for each missing item; it installs nothing.
 
 Foundry, `bash`, `git`, and Python 3 if you can (standard library only: the freshness guard uses it for the evidence
 it prints - which source changed since the last build; without it that evidence is missing, the verdict is forge's either
 way), and an agent that can read files and run a terminal; Slither (Python) for the static-analysis
 judge, which full mode requires and which is an install your agent must ask you for; `reportlab` (Python), optional, for the
-PDF copy of the dossier only (`scripts/dossier-pdf.py`; without it the dossier is handed over as Markdown alone). `forge install foundry-rs/forge-std`
-in `foundry-kit/` before the self-test (it says INCOMPLETE without it). The v4 module needs Uniswap's
-sources: `scripts/install-v4.sh` fetches them at pinned commits into a git-ignored `lib/` (or, offline, copies local
-clones and checks the same pins: `V4_LOCAL_SRC`, `foundry-kit/v4/README.md`). They are not in this
+PDF copy of the dossier only (`skills/hook-gauntlet-dossier/scripts/dossier-pdf.py`; without it the dossier is handed over as Markdown alone). `forge install foundry-rs/forge-std`
+in `skills/hook-gauntlet-battery/foundry-kit/` before the self-test (it says INCOMPLETE without it). The v4 module needs Uniswap's
+sources: `skills/hook-gauntlet-battery/scripts/install-v4.sh` fetches them at pinned commits into a git-ignored `lib/` (or, offline, copies local
+clones and checks the same pins: `V4_LOCAL_SRC`, `skills/hook-gauntlet-battery/foundry-kit/v4/README.md`). They are not in this
 repository and must not be - `PoolManager` is BUSL-1.1. The scripts are exercised on Linux
 and bash 5. **On Windows, run everything inside WSL** and keep the project on the Linux side: paths, line endings
 (`CRLF` breaks a shell script silently) and file watchers all behave differently across the boundary. macOS is
@@ -260,14 +264,14 @@ This is not the first attempt to put adversarial pressure on a contract before a
 from all of these:
 
 - **"Weird ERC-20" repositories** - the catalogues of token behaviours that break integrations (fee on transfer,
-  rebasing, missing return values, revert on zero, blocklists). The hostile-token mock in `foundry-kit/` is a
+  rebasing, missing return values, revert on zero, blocklists). The hostile-token mock in `skills/hook-gauntlet-battery/foundry-kit/` is a
   switchable version of that idea, and the catalogues are a better checklist than anything an agent will invent.
 - **DeFi CTFs and wargames** - the tradition of learning a protocol by breaking a deliberately vulnerable copy of
   it. Phase 4 is that tradition with the copy replaced by your own code.
 - **Uniswap's own material, which comes first**: the [v4 developer docs](https://developers.uniswap.org/docs/protocols/v4/overview)
   and the Uniswap Foundation's [Hook Security Framework](https://developers.uniswap.org/docs/protocols/v4/security) - a
   self-scored risk tier that says how much outside assurance a hook is expected to have. The owner scores the hook in
-  phase 0 and the dossier reports against it. [`doctrine/UPSTREAM.md`](doctrine/UPSTREAM.md) lists what to read before
+  phase 0 and the dossier reports against it. [`skills/hook-gauntlet/references/UPSTREAM.md`](skills/hook-gauntlet/references/UPSTREAM.md) lists what to read before
   believing anything here, and says that where upstream and this kit disagree, upstream wins.
 - **The official [`v4-template`](https://github.com/uniswapfoundation/v4-template)** - phase 2 starts from it, not
   from a layout of ours. If the template changes, follow the template.
@@ -279,7 +283,7 @@ from all of these:
   are a web search away and the dossier template says which rows are theirs).
 - Most of this repository is packaging of those four sources for an agent. What outside reviewers agreed was new:
   the rule that a test counts only once seen red, the campaign census, "questions fixed, tools free", the mandatory
-  "not checked" section, and the catalogue in `doctrine/JUDGES.md` of how each tool lies.
+  "not checked" section, and the catalogue in `skills/hook-gauntlet-battery/references/JUDGES.md` of how each tool lies.
 
 ## Status
 
@@ -291,8 +295,8 @@ real discovery round each; the v4 module's gap list closed except fork tests. On
 | doctrine, briefs, state convention | distilled from a real project, then walked twelve times by strangers on twelve new hooks (below); every stall they hit is fixed, and each fix was re-walked |
 | Foundry kit and scripts | written with their own tests (hostile token: one test per switch; guards: a self-test that makes each one go red on purpose). Scripts exercised on bash 5 / Linux only |
 | v4 module | harness with both managers, address mining, three worked hooks with unit, invariant, mutant and edge tests; proven once against the Ethereum mainnet manager's bytecode. **Covered:** delta-returning hooks, native currency with a hostile native counterparty, ERC-6909 claims with conservation per party, settlement re-entrancy through a token's transfer hook, a second pool sharing a currency, tick/price/fee edges (all 2026-09-24, each area verified by a second agent - below). **Not covered:** fork tests and a block-pinned fixture; a JIT-recipient actor for hooks that pay "whoever is in range"; v4-periphery (its README, "What this module still does not do") |
-| `adapters/claude-code/` | the path the method was actually run on |
-| `adapters/experimental/codex/` | **experimental / untested** - written from the documented convention, kept out of the supported path until an end-to-end run exists |
+| `skills/hook-gauntlet/references/adapters/claude-code.md` | the path the method was actually run on |
+| `skills/hook-gauntlet/references/adapters/codex.md` | **experimental / untested** - written from the documented convention, kept out of the supported path until an end-to-end run exists |
 | blind benchmark (planted bugs, sealed answer key, measured recall) | **run twice on the same target**: one round, then the full light route - see below |
 | review of the kit itself | three audit passes, twelve fresh-reader walks, five verifier passes over the v4 series - see below. **Same model family as the authors, one agent harness; no human has reviewed this kit** |
 
@@ -310,7 +314,7 @@ should have failed, **medium** = a guard that could be beaten or a fix that open
 | 2 - verifier, over the fixes | 0 | 4 | 15 | two doors **the fixes had opened** (one script could now delete the project it was asked to copy); a "campaign census" that was really one run in 64 |
 | 3 - verifier, over those fixes | 0 | 0 | 12 | the same path guard, beaten twice more by odd paths; nine sabotages the self-test did not notice |
 
-All fixed, and since pass 2 every fix arrives with the case that sees it red first (`doctrine/VERIFY.md` 11b). The
+All fixed, and since pass 2 every fix arrives with the case that sees it red first (`skills/hook-gauntlet/references/VERIFY.md` 11b). The
 numbers fall; they have not reached zero, and the pattern is worth more than the count: **the Solidity held, the
 bash around it did not.** Anything here that parses a tool's human-readable output is the part to trust least.
 
@@ -337,11 +341,11 @@ Read this for what it is:
 - **Planter and auditors were the same model family.** A blind spot they share is invisible in this result.
 - The planter did not know about the two extra high-severity bugs. An answer key written by a model is a floor.
 - One arm built the invariant suite on its own and reported that five of its twelve findings were a missing fuzz
-  *action*, not a missing invariant - which is what `doctrine/FUZZ-ACTIONS.md` says, confirmed from outside.
+  *action*, not a missing invariant - which is what `skills/hook-gauntlet-spec/references/FUZZ-ACTIONS.md` says, confirmed from outside.
 
 ### The blind benchmark, run 2 - the full route, two models
 
-Same target and sealed key as run 1. Two fresh agents entered by `QUICKSTART.md` with nothing else, played the owner,
+Same target and sealed key as run 1. Two fresh agents entered by `skills/hook-gauntlet/references/QUICKSTART.md` with nothing else, played the owner,
 and walked the **light route** - interview, spec review, local judges, the simulation sandbox, up to three model rounds,
 the dossier skeleton - each on its own bench.
 
@@ -363,7 +367,7 @@ Read this for what it is:
 - **The second arm's isolation is self-declared**: the orchestration harness gave every agent one shared scratch
   directory, and the first arm's tests were in it while the second ran. The second arm and its sub-agents declared
   they did not read it; that cannot be proved, so the result is labelled indicative. (The rule it produced is
-  `doctrine/ORCHESTRATION.md` §1.)
+  `skills/hook-gauntlet-round/references/ORCHESTRATION.md` §1.)
 - **A harder target was not built**: the model provider's safety classifier stopped the agent asked to write a hook
   with planted defects, twice. The next target comes from public hooks with public fixes (`ORCHESTRATION.md` §4).
 - Both arms left a list of places where the kit was wrong or silent. The fixes are in the commits after this run;
@@ -372,7 +376,7 @@ Read this for what it is:
 ### Twelve walks by strangers
 
 After run 2, the question changed from "does an auditor find the bugs" to "does a stranger get through the route
-without guessing". Each walk was a fresh agent given `QUICKSTART.md` and nothing else, on a hook it wrote for the
+without guessing". Each walk was a fresh agent given `skills/hook-gauntlet/references/QUICKSTART.md` and nothing else, on a hook it wrote for the
 purpose (a capped desk, a surge-fee pool, a budget gate, an impact guard, a cooldown gate, a tip jar, a swap-reward pot,
 a claims escrow, a bonded-swap gate, a milestone escrow, a referral skim, a donate-back hook - the last four real v4
 hooks, the last with a delta and ERC-6909 claims on native pools), owner played from the project's files, token
@@ -407,14 +411,14 @@ context and its own tests, told to falsify. What the verifiers did:
   still owes is theft, visible only to books kept per party; state kept per currency let a stranger's pool drain
   another pool's rebates while conservation per currency stayed green.
 
-The v4 battery went from 108 to 228 tests. `doctrine/V4-ACCOUNTING.md` carries the measured items (13-24) and four
-rules; `doctrine/HOOK-ATTACKS.md` names the test file for every class the module exercises.
+The v4 battery went from 108 to 228 tests. `skills/hook-gauntlet-spec/references/V4-ACCOUNTING.md` carries the measured items (13-24) and four
+rules; `skills/hook-gauntlet-spec/references/HOOK-ATTACKS.md` names the test file for every class the module exercises.
 
 ### How all of this was run, and what is next
 
 Every agent above ran inside **one harness, Claude Code, on one vendor's models**: Opus 5.5 as the workers, verifiers
 and strangers; Sonnet as the cheaper arm of run 2; Fable 5.1 deciding doctrine, reading reports, and never certifying
-its own work (`doctrine/ORCHESTRATION.md`). That is the single largest limit of every number on this page: a blind spot
+its own work (`skills/hook-gauntlet-round/references/ORCHESTRATION.md`). That is the single largest limit of every number on this page: a blind spot
 shared by that family and that harness is invisible here.
 
 The next measurement is therefore **another vendor and another harness**: an open-weights model run locally inside an
@@ -436,10 +440,10 @@ the kit itself.
 
 Distilled from the hardening of one real Uniswap v4 hook across 28 revisions and 25 adversarial rounds. The project
 itself is not identified, and no line of its code and none of its mechanics are in this repository. A few measurements
-of TOOL COST taken on it appear in `doctrine/JUDGES.md`, marked as coming from "a real hook" (mutant counts, run times);
+of TOOL COST taken on it appear in `skills/hook-gauntlet-battery/references/JUDGES.md`, marked as coming from "a real hook" (mutant counts, run times);
 nothing about the contract itself does. What is here is the method.
 
 ## License
 
-MIT - see [`LICENSE`](LICENSE). Uniswap's sources are not part of this repository; `scripts/install-v4.sh` fetches
+MIT - see [`LICENSE`](LICENSE). Uniswap's sources are not part of this repository; `skills/hook-gauntlet-battery/scripts/install-v4.sh` fetches
 them, and they keep their own licences.

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased - the core as a resident constitution + on-demand phase skills (issue #2)
+
+- `skills/` IS the repository now: nine Agent Skills, each self-contained. `hook-gauntlet` is resident and carries
+  the constitution - the rules of the canonical `references/AGENTS.md` condensed, and the NEXT.md row -> skill map.
+  Eight phase skills (`-interview`, `-spec`, `-battery`, `-round`, `-blackbox`, `-release`, `-dossier`, `-doctor`)
+  each open with the SAME constitution block, on purpose: an agent that loaded only one phase skill still has the
+  scope rule.
+- What a skill needs lives inside it: doctrine, briefs and templates under `references/`, the tools its phase runs
+  under `scripts/`, the Foundry assets under `foundry-kit/` (the battery skill). What it shares with the others is a
+  `../<sibling>/` relative path away - so `<kit>/` placeholders are gone, and installing the skills is a plain copy:
+  `skills/hook-gauntlet-doctor/scripts/install-skills.sh`, verified by running the drift guard on the installed tree.
+- `skills/hook-gauntlet-doctor/scripts/skills-check.sh` is the drift guard: one constitution byte-identical
+  everywhere, every relative pointer resolves, every `references/` file is pointed at by a SKILL.md, the router
+  names every skill, identical `scripts/lib/` files stay byte-identical, and backticked dead-path prefixes
+  (`doctrine/`, `briefs/`, `scripts/`, `foundry-kit/`, `state/`) are refused. `--sync` re-stamps the constitution
+  copies from the resident. Self-test cases make each check go red.
+- The root `doctrine/`, `briefs/`, `state/`, `scripts/`, `foundry-kit/` and `adapters/` directories are gone - their
+  contents live inside the skills. Root `AGENTS.md` is a stub that routes to the resident skill; the canonical
+  text is `skills/hook-gauntlet/references/AGENTS.md`, and where any file and it disagree, it still wins.
+
 ## v0.1.1 - 2026-09-25 - the dossier as a PDF, and what a handoff must be
 
 - `scripts/dossier-pdf.py` renders the handoff dossier as a PDF for the human auditor (status lines boxed first,

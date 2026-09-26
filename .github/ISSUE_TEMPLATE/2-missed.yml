@@ -28,7 +28,7 @@ body:
     id: why
     attributes:
       label: Why the route did not catch it, if you know
-      description: No fuzz action reached it? No invariant looked at it? Not in doctrine/HOOK-ATTACKS.md? Severity misjudged?
+      description: No fuzz action reached it? No invariant looked at it? Not in skills/hook-gauntlet-spec/references/HOOK-ATTACKS.md? Severity misjudged?
   - type: textarea
     id: test
     attributes:
