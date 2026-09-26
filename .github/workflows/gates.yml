@@ -4,6 +4,10 @@
 #
 # What runs here and what does not:
 #   - on every push / pull request, and once a day:
+#       skills    skills/hook-gauntlet-doctor/scripts/skills-check.sh, the drift guard for the skills tree:
+#                 one byte-identical constitution in all nine SKILL.md, every relative pointer resolves, every
+#                 references/ file is pointed at. Pure text, no forge, ~1 s - and then --sync must change
+#                 nothing, which is what proves the copies in the tree are not stale;
 #       battery   the root kit and the v4 module against the SOURCE manager (build, tests, sizes, stale-build check -
 #                 one exit code each), and a check that the v4 log names the sandbox suites (test/sim) that ran; before
 #                 them, skills/hook-gauntlet-doctor/scripts/doctor.sh, which must say "doctor: ready" once the dependencies are in (it installs nothing);
@@ -45,6 +49,28 @@ env:
   PYPDF_VERSION: "6.9.1"
 
 jobs:
+  # The drift guard for the skills tree, as its own job because it is the cheapest gate there is (pure text, no
+  # forge, no network, ~1 s) and it guards the thing this repository IS: nine skills that must carry one byte-identical
+  # constitution and whose every relative pointer must resolve. Nothing else in this workflow would notice a stale
+  # copy - a drifted constitution would reach an agent as a second, quietly wrong rule set.
+  skills:
+    name: skills (one constitution, every pointer resolves)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: skills-check (the guard; red on drift, on a dead pointer, on an unpointed references/ file)
+        run: skills/hook-gauntlet-doctor/scripts/skills-check.sh
+      - name: the guard is the one in the tree, not a copy (re-stamping must change nothing)
+        run: |
+          skills/hook-gauntlet-doctor/scripts/skills-check.sh --sync
+          if [ -n "$(git status --porcelain -- 'skills/*/SKILL.md')" ]; then
+            echo "::error title=skills drift::--sync changed a SKILL.md: the constitution copies are stale. Run --sync and commit."
+            git --no-pager diff -- 'skills/*/SKILL.md'
+            exit 1
+          fi
+          echo "the constitution is identical in all 9 skills"
+
   battery:
     name: battery (root kit + v4 module, source manager)
     runs-on: ubuntu-24.04
@@ -58,7 +84,7 @@ jobs:
         run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       - name: Uniswap v4 sources for the v4 module, at the pinned commits (never vendored - BUSL-1.1)
         run: skills/hook-gauntlet-battery/scripts/install-v4.sh skills/hook-gauntlet-battery/foundry-kit/v4
-      - name: doctor (checks only, installs nothing; its last line must be "doctor: ready")
+      - name: "doctor (checks only, installs nothing; its last line must be doctor: ready)"
         run: skills/hook-gauntlet-doctor/scripts/doctor.sh
       - name: battery, root kit
         run: skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit
@@ -93,7 +119,7 @@ jobs:
         run: git clone --quiet --depth 1 --branch "$FORGE_STD_TAG" https://github.com/foundry-rs/forge-std skills/hook-gauntlet-battery/foundry-kit/lib/forge-std
       - name: Uniswap v4 sources for the v4 module, at the pinned commits
         run: skills/hook-gauntlet-battery/scripts/install-v4.sh skills/hook-gauntlet-battery/foundry-kit/v4
-      - name: doctor (checks only; forge 1.8.3 is the second supported version, so this is "doctor: ready" too)
+      - name: "doctor (checks only; forge 1.8.3 is the second supported version, so this is doctor: ready too)"
         run: skills/hook-gauntlet-doctor/scripts/doctor.sh
       - name: battery, root kit
         run: skills/hook-gauntlet-battery/scripts/battery.sh skills/hook-gauntlet-battery/foundry-kit

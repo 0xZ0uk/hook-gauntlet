@@ -114,7 +114,7 @@ canon() { # canon <skill> <pointer> -> "<skill>/<relpath>" ; empty if it escapes
   case "$2" in
     ../*/../*|*/../*|*/..) printf '' ;;
     ../[a-z0-9-]*/*) printf '%s\n' "${2#../}" ;;
-    references/*|scripts/*|foundry-kit/*|references/|scripts/|foundry-kit/) printf '%s/%s\n' "$1" "$2" ;;
+    references/*|scripts/*|foundry-kit/*) printf '%s/%s\n' "$1" "$2" ;;
     *) printf '' ;;
   esac
 }
