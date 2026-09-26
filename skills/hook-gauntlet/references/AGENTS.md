@@ -299,7 +299,7 @@ part that ages.
 
 - The kit has been through two blind runs on one small target (run 1: one audit round; run 2: the full light route,
   one strong and one cheaper model; n = 1 each, one model family) and several independent reviews of itself. It is
-  distilled from one real hardening effort. That is evidence about a method, not a validation of it: `README.md`, *Status*.
+  distilled from one real hardening effort. That is evidence about a method, not a validation of it: `../../../docs/status.md`.
 - Running the route with agents meets two refusals that are not the kit's: a harness that will not let a subagent write
   report files, and a model provider's safety classifier that may stop an agent asked to author an offensive artefact.
   The route avoids needing one; `../../hook-gauntlet-round/references/ORCHESTRATION.md` §4 says how, and what to write when a step is stopped.

@@ -118,6 +118,6 @@ You are at the entry point. Nothing here is phase work; its only job is to put y
 ## Read when
 
 - ``references/AGENTS.md`` - the full text this block condenses: the phase gates (section 3), the divergence rules (6b).
-- the repository's README.md, at the kit's root - for a human: what the kit is, its status, and its measured limits.
+- the repository's README.md, at the kit's root - for a human: what the kit is; its status and measured limits live in `docs/`.
 - ``references/QUICKSTART.md`` - the commands from a clone to the first round, each with what "done" looks like.
 - ``references/adapters/`` - per-harness notes: how the route was run on Claude Code, and the untested Codex notes.

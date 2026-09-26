@@ -5,10 +5,10 @@ case - not when it adds a claim. In order of usefulness:
 
 1. **A run of the route on a hook we did not write.** Open an issue with: the step where you stalled or guessed
    (document line, command, output line), what the human auditor found afterwards that the route did not, and what a
-   test declared as evidence turned out to be vacuous. That is the evidence this repository lacks most (`README.md`,
-   *Status*).
-2. **A run on another model or another agent harness.** Same score sheet as the walks in *Status*: steps clean /
-   guessed / stalled, findings against a sealed key, cost. The README names this as the next measurement.
+   test declared as evidence turned out to be vacuous. That is the evidence this repository lacks most
+   (`docs/status.md`).
+2. **A run on another model or another agent harness.** Same score sheet as the walks in `docs/status.md`: steps clean /
+   guessed / stalled, findings against a sealed key, cost. It names this as the next measurement.
 3. **One new hostile behaviour** in `skills/hook-gauntlet-battery/foundry-kit/src/HostileERC20.sol` (rebasing by shares, a per-wallet fee, revert on
    a zero transfer, `approve` refused from non-zero to non-zero, a sender blocklist, "moves and then returns false",
    another return-data shape): one switch, one unit test per switch, seen red on a contract that does not check it.

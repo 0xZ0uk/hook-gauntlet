@@ -73,7 +73,7 @@ step is written.
 
 ## 5. Match the model to the work, and let the route do its job
 
-Measured once (blind run 2, `README.md` *Status*): on the same target and brief, a strong model reached every planted
+Measured once (blind run 2, `../../../docs/status.md`): on the same target and brief, a strong model reached every planted
 defect in one discovery round; a cheaper one reached the same score only after the black-box and the verifier rounds,
 for at least twice the tokens. So:
 
