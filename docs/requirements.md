@@ -34,6 +34,28 @@ So: 8 GB is comfortable, 4 GB works if you keep mutation to one or two jobs, and
 memory for time almost linearly. The expensive part of this kit is not your machine, it is the model behind your
 agent. On Windows, WSL sees half of the machine's memory by default.
 
+### If your machine cannot hold the v4 module
+
+Measured on a 4 GB / 4-core Linux host, 2026-09-26, where the v4 module will not build:
+
+| lever | result |
+|---|---|
+| `FOUNDRY_THREADS=1` | **does not help.** A single `solc` on `PoolManager.sol` peaks at 1.5 GB RSS on its own and is OOM-killed (signal 9) with ~1.6 GB free. `threads` controls how many `solc` processes run at once, not how big each one is. |
+| `forge build --contracts lib/v4-core/src/PoolManager.sol` | 22 tasks, 4.6 s, fits. Scoped builds are the way to make progress on a small machine. |
+| the v4 leg of the battery, locally | leave it to CI. `.github/workflows/gates.yml` runs it on a 7 GB runner, and the root-kit battery - 107 tests - builds in 0.3 GB. |
+
+The one heavy object is Uniswap's `PoolManager`, which `foundry-kit/v4/foundry.toml` compiles with `via_ir = true`
+and `optimizer_runs = 44444444` (the `manager` compiler profile, lines 27-29). That single contract is what a small
+machine cannot hold; everything else in the kit is cheap. Three things follow:
+
+1. **Run the guards that need no compiler.** `doctor.sh` and `skills-check.sh` are pure text, cost about a second,
+   and cover machine readiness, constitution drift and dead pointers - the cheap failure modes.
+2. **Treat the local v4 run as optional and CI as the evidence.** A gate you cannot run on your own machine is not a
+   reason to lower the gate.
+3. **If you must compile it locally, scope the build** (`--contracts`, or a single `src/` tree) and lower
+   `optimizer_runs` - then re-measure the runtime size with `forge build --sizes`, because that number is what the
+   `manager` profile exists to keep honest.
+
 ## What the v4 module covers, and what your project must add
 
 | covered by an example here | project-specific, yours to add |
